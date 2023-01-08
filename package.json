@@ -11,5 +11,8 @@
     "dev": "tsc -w"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@types/wicg-file-system-access": "^2020.9.5"
+  }
 }
