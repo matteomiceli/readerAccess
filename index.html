@@ -28,7 +28,7 @@
       const reader = new DeviceHandler();
 
       selectReaderBtn.addEventListener("click", async () => {
-        await reader.init();
+        await reader.access();
         console.log(reader.device);
       });
     </script>

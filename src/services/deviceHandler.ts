@@ -5,7 +5,7 @@ export class DeviceHandler {
   device: device | null = null;
   handle: null | FileSystemDirectoryHandle = null;
 
-  async init() {
+  async access() {
     this.handle = await this.pickDir();
     this.handle.requestPermission({ mode: "readwrite" });
     this.device = this.getDeviceType(this.handle.name);
@@ -15,7 +15,7 @@ export class DeviceHandler {
     return window.showDirectoryPicker();
   }
 
-  getDeviceType(name: string): device | null {
+  getDeviceType(name: string) {
     if (name.toLowerCase().includes("kobo")) {
       return device.kobo;
     }
