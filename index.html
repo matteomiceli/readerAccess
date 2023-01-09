@@ -1,11 +1,36 @@
+<!-- 
+  DEMO FILE
+  run 'build' script before attempting to view demo
+-->
 <!DOCTYPE html>
+
+<style>
+  body {
+    background-color: rgb(23, 26, 44);
+  }
+</style>
+
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script type="module" src="dist/src/index.js"></script>
-    <title>Document</title>
+    <title>Reader Access Demo</title>
   </head>
-  <body></body>
+
+  <body>
+    <button id="select-reader">Select Your Device</button>
+    <script type="module">
+      import { DeviceHandler } from "./dist/index.js";
+
+      const selectReaderBtn = document.getElementById("select-reader");
+
+      const reader = new DeviceHandler();
+
+      selectReaderBtn.addEventListener("click", async () => {
+        await reader.init();
+        console.log(reader.device);
+      });
+    </script>
+  </body>
 </html>
