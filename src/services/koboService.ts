@@ -1,4 +1,4 @@
-import { Device } from "../services/types";
+import { Device } from "../controllers/types";
 
 export class Kobo implements Device {
   addBook() {
