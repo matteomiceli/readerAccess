@@ -1,6 +1,6 @@
 <!-- 
   DEMO FILE
-  run 'build' script before attempting to view demo
+  run 'build' script before attempting to run demo
 -->
 <!DOCTYPE html>
 
@@ -16,21 +16,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Reader Access Demo</title>
+    <script type="module" defer src="./app.js"></script>
   </head>
 
   <body>
     <button id="select-reader">Select Your Device</button>
-    <script type="module">
-      import { DeviceHandler } from "./dist/index.js";
-
-      const selectReaderBtn = document.getElementById("select-reader");
-
-      const reader = new DeviceHandler();
-
-      selectReaderBtn.addEventListener("click", async () => {
-        await reader.access();
-        console.log(reader.files);
-      });
-    </script>
   </body>
 </html>

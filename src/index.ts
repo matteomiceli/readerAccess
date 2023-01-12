@@ -1,1 +1,1 @@
-export * from "./services/deviceHandler.js";
+export * from "./services/deviceController.js";

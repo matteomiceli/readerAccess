@@ -1,9 +1,10 @@
-import { device } from "./types.js";
+import { Device, deviceType } from "./types.js";
 
 // file handler goes here
-export class DeviceHandler {
-  device: device | null = null;
+export class Reader {
   name: string = "";
+  type: deviceType = deviceType.generic;
+  device: Device | null = null;
   handle: null | FileSystemDirectoryHandle = null;
   files: { [key: string]: FileSystemDirectoryHandle | FileSystemFileHandle } =
     {};
@@ -12,25 +13,24 @@ export class DeviceHandler {
     this.handle = await this.pickDir();
     this.handle.requestPermission({ mode: "readwrite" });
     this.name = this.handle.name;
-    this.device = this.getDeviceType(this.handle.name);
-    await this.getFiles();
+    this.setDeviceType(this.handle.name);
+    await this.setFiles();
   }
 
   async pickDir() {
     return window.showDirectoryPicker();
   }
 
-  getDeviceType(name: string) {
+  setDeviceType(name: string) {
     if (name.toLowerCase().includes("kobo")) {
-      return device.kobo;
+      this.type = deviceType.kobo;
     }
     if (name.toLowerCase().includes("kindle")) {
-      return device.kindle;
+      this.type = deviceType.kindle;
     }
-    return device.unknown;
   }
 
-  async getFiles() {
+  async setFiles() {
     if (!this.handle?.values()) {
       return;
     }
