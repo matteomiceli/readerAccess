@@ -1,12 +1,20 @@
 import { Device, deviceType } from "./types.js";
 
-// file handler goes here
+/**
+ * TODO - set a specific ereader service based on the type of device connected with
+ * device-specific behaviour
+ */
 export class Reader {
   name: string = "";
+
   type: deviceType = deviceType.generic;
-  device: Device | null = null;
-  handle: null | FileSystemDirectoryHandle = null;
-  files: { [key: string]: FileSystemDirectoryHandle | FileSystemFileHandle } =
+
+  private handle: null | FileSystemDirectoryHandle = null;
+
+  /**
+   * This is a lose concept now, but in the future this will only be books on the device
+   */
+  books: { [key: string]: FileSystemDirectoryHandle | FileSystemFileHandle } =
     {};
 
   async access() {
@@ -17,11 +25,15 @@ export class Reader {
     await this.setFiles();
   }
 
-  async pickDir() {
+  addBook() {}
+
+  addDictionary() {}
+
+  private async pickDir() {
     return window.showDirectoryPicker();
   }
 
-  setDeviceType(name: string) {
+  private setDeviceType(name: string) {
     if (name.toLowerCase().includes("kobo")) {
       this.type = deviceType.kobo;
     }
@@ -30,13 +42,13 @@ export class Reader {
     }
   }
 
-  async setFiles() {
+  private async setFiles() {
     if (!this.handle?.values()) {
       return;
     }
 
     for await (const file of this.handle.values()) {
-      this.files[file.name] = file;
+      this.books[file.name] = file;
     }
   }
 }
