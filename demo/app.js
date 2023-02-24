@@ -3,7 +3,7 @@
  * run 'build' script before attempting to run demo
  */
 
-import { Reader } from "./dist/index.js";
+import { Reader } from "../dist/index.js";
 
 const selectReaderBtn = document.getElementById("select-reader");
 
