@@ -11,7 +11,5 @@ const reader = new Reader();
 
 selectReaderBtn.addEventListener("click", async () => {
   await reader.access();
-  console.log(
-    reader.files["A Memory Called Empire by Arkady Martine.epub"].kind
-  );
+  console.log(reader.books);
 });
