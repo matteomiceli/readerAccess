@@ -19,10 +19,14 @@ export class Reader {
 
   async access() {
     this.handle = await this.pickDir();
+    if (!this.handle) {
+      return null;
+    }
     this.handle.requestPermission({ mode: "readwrite" });
     this.name = this.handle.name;
     this.setDeviceType(this.handle.name);
     await this.setFiles();
+    return this;
   }
 
   addBook() {}
@@ -30,7 +34,12 @@ export class Reader {
   addDictionary() {}
 
   private async pickDir() {
-    return window.showDirectoryPicker();
+    try {
+      return await window.showDirectoryPicker();
+    } catch (e) {
+      console.warn("ReaderAccess: User aborted device selection \n\n", e);
+      return null;
+    }
   }
 
   private setDeviceType(name: string) {

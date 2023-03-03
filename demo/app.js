@@ -3,13 +3,13 @@
  * run 'build' script before attempting to run demo
  */
 
-import { Reader } from "../dist/index.js";
+import { Reader } from "../dist/src/index.js";
 
 const selectReaderBtn = document.getElementById("select-reader");
 
-const reader = new Reader();
+let reader;
 
 selectReaderBtn.addEventListener("click", async () => {
-  await reader.access();
+  reader = await new Reader().access();
   console.log(reader.books);
 });
