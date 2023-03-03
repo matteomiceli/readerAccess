@@ -1,6 +1,6 @@
 import { Reader } from "./controllers/deviceController.js";
 
-export const access = async () => {
+export const readerAccess = async () => {
   try {
     const dirHandle = await window.showDirectoryPicker();
     return new Reader(dirHandle);

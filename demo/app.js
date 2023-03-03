@@ -3,7 +3,7 @@
  * run 'build' script before attempting to run demo
  */
 
-import { access } from "../dist/src/index.js";
+import { readerAccess } from "../dist/src/index.js";
 
 const selectReaderBtn = document.getElementById("select-reader");
 const selectFileBtn = document.getElementById("select-file");
@@ -14,7 +14,7 @@ let files = [];
 
 selectReaderBtn.addEventListener("click", async () => {
   try {
-    reader = await access();
+    reader = await readerAccess();
     console.log(await reader.getBooks());
   } catch (error) {
     console.log(error);
@@ -27,6 +27,9 @@ selectFileBtn.addEventListener("change", (e) => {
 
 sendFileBtn.addEventListener("click", async () => {
   files.forEach(async (file) => {
-    await reader.addBook(file);
+    try {
+      await reader.addBook(file);
+      console.log(`${file.name} added to ${reader.name}`);
+    } catch (error) {}
   });
 });
