@@ -1,4 +1,4 @@
-import { Device, deviceType } from "./types.js";
+import { deviceType } from "./types.js";
 
 /**
  * TODO - set a specific ereader service based on the type of device connected with
@@ -29,7 +29,26 @@ export class Reader {
     return this;
   }
 
-  addBook() {}
+  async addBook(file: File) {
+    if (!this.handle) {
+      console.warn("ReaderAccess: No directory handle selected");
+      return;
+    }
+    if (!file) {
+      console.warn("No file selected");
+      return;
+    }
+    try {
+      const newFile = await this.handle.getFileHandle(file.name, {
+        create: true,
+      });
+      const fs = await newFile.createWritable();
+      await fs.write({ type: "write", data: await file.arrayBuffer() });
+      await fs.close();
+    } catch (error) {
+      console.error("There was a problem trying to copy a file to your device");
+    }
+  }
 
   addDictionary() {}
 
