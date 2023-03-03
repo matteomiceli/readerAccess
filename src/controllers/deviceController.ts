@@ -1,36 +1,25 @@
-import { deviceType } from "./types.js";
+import { DeviceType, Books } from "./types.js";
 
 /**
  * TODO - set a specific ereader service based on the type of device connected with
  * device-specific behaviour
  */
 export class Reader {
-  name: string = "";
+  name: string;
 
-  type: deviceType = deviceType.generic;
+  type: DeviceType;
 
-  private handle: null | FileSystemDirectoryHandle = null;
+  private dirHandle: FileSystemDirectoryHandle;
 
-  /**
-   * This is a lose concept now, but in the future this will only be books on the device
-   */
-  books: { [key: string]: FileSystemDirectoryHandle | FileSystemFileHandle } =
-    {};
-
-  async access() {
-    this.handle = await this.pickDir();
-    if (!this.handle) {
-      return null;
-    }
-    this.handle.requestPermission({ mode: "readwrite" });
-    this.name = this.handle.name;
-    this.setDeviceType(this.handle.name);
-    await this.setFiles();
-    return this;
+  constructor(dirHandle: FileSystemDirectoryHandle) {
+    this.dirHandle = dirHandle;
+    this.dirHandle.requestPermission({ mode: "readwrite" });
+    this.name = this.dirHandle.name;
+    this.type = this.setDeviceType(this.dirHandle.name);
   }
 
   async addBook(file: File) {
-    if (!this.handle) {
+    if (!this.dirHandle) {
       console.warn("ReaderAccess: No directory handle selected");
       return;
     }
@@ -39,44 +28,39 @@ export class Reader {
       return;
     }
     try {
-      const newFile = await this.handle.getFileHandle(file.name, {
+      const newFile = await this.dirHandle.getFileHandle(file.name, {
         create: true,
       });
       const fs = await newFile.createWritable();
       await fs.write({ type: "write", data: await file.arrayBuffer() });
       await fs.close();
     } catch (error) {
-      console.error("There was a problem trying to copy a file to your device");
+      console.error("There was a problem copying a file to your device");
     }
+  }
+
+  async getBooks(): Promise<Books | undefined> {
+    if (!this.dirHandle?.values()) {
+      return;
+    }
+
+    const books: Books = {};
+
+    for await (const file of this.dirHandle.values()) {
+      books[file.name] = file;
+    }
+    return books;
   }
 
   addDictionary() {}
 
-  private async pickDir() {
-    try {
-      return await window.showDirectoryPicker();
-    } catch (e) {
-      console.warn("ReaderAccess: User aborted device selection \n\n", e);
-      return null;
-    }
-  }
-
-  private setDeviceType(name: string) {
+  private setDeviceType(name: string): DeviceType {
     if (name.toLowerCase().includes("kobo")) {
-      this.type = deviceType.kobo;
+      return DeviceType.kobo;
     }
     if (name.toLowerCase().includes("kindle")) {
-      this.type = deviceType.kindle;
+      return DeviceType.kindle;
     }
-  }
-
-  private async setFiles() {
-    if (!this.handle?.values()) {
-      return;
-    }
-
-    for await (const file of this.handle.values()) {
-      this.books[file.name] = file;
-    }
+    return DeviceType.generic;
   }
 }

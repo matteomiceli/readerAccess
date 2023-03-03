@@ -1,4 +1,4 @@
-export enum deviceType {
+export enum DeviceType {
   "kobo" = "Kobo",
   "kindle" = "Kindle",
   "generic" = "Generic",
@@ -9,3 +9,7 @@ export interface Device {
   addBook: () => void;
   addDictionary: () => void;
 }
+
+export type Books = {
+  [key: string]: FileSystemDirectoryHandle | FileSystemFileHandle;
+};
