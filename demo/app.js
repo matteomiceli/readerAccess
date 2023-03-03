@@ -6,10 +6,20 @@
 import { Reader } from "../dist/src/index.js";
 
 const selectReaderBtn = document.getElementById("select-reader");
+const selectFileBtn = document.getElementById("select-file");
 
-let reader;
+let reader = new Reader();
 
 selectReaderBtn.addEventListener("click", async () => {
-  reader = await new Reader().access();
-  console.log(reader.books);
+  try {
+    await reader.access();
+    console.log(reader.books);
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+selectFileBtn.addEventListener("change", (e) => {
+  const files = e.currentTarget.files;
+  reader.addBook(files[0]);
 });
