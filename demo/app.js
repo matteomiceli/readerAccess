@@ -3,11 +3,12 @@
  * run 'build' script before attempting to run demo
  */
 
-import { readerAccess } from "../dist/src/index.js";
+import { readerAccess, parseEpub } from "../dist/src/index.js";
 
 const selectReaderBtn = document.getElementById("select-reader");
 const selectFileBtn = document.getElementById("select-file");
 const sendFileBtn = document.getElementById("send-file");
+const parseEpubBtn = document.getElementById("parse-epub");
 
 let reader;
 let files = [];
@@ -32,4 +33,8 @@ sendFileBtn.addEventListener("click", async () => {
       console.log(`${file.name} added to ${reader.name}`);
     } catch (error) {}
   });
+});
+
+parseEpubBtn.addEventListener("click", async () => {
+  console.log(parseEpub(files[0]));
 });
