@@ -1,4 +1,4 @@
-import { DeviceType, Books } from "./types.js";
+import { DeviceType, Books } from "./types";
 
 /**
  * TODO - set a specific ereader service based on the type of device connected with

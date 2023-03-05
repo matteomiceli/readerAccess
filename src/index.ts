@@ -1,1 +1,2 @@
-export * from "./readerAccess.js";
+export * from "./readerAccess";
+export * from "./services/parseEpub";
