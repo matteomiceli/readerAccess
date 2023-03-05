@@ -15,8 +15,8 @@
   },
   "scripts": {
     "test": "jest",
-    "build": "rm -rf ./dist && tsc",
-    "dev": "tsc -w"
+    "build": "rm -rf ./dist && npx parcel build src/index.ts",
+    "watch": "rm -rf ./dist && npx parcel watch src/index.ts"
   },
   "author": "",
   "license": "ISC",
