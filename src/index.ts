@@ -1,2 +1,2 @@
 export * from "./readerAccess";
-export * from "./services/parseEpub";
+export * from "./services/epub";
