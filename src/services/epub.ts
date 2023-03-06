@@ -5,8 +5,9 @@ interface EpubMetaData {
 }
 
 export async function parseEpub(file: File) {
-  const zipReader = new zip.BlobReader(file);
-  const unzipped = await new zip.ZipReader(zipReader).getEntries();
+  const zipReader = new zip.ZipReader(new zip.BlobReader(file));
+  const unzipped = await zipReader.getEntries();
+  await zipReader.close();
   const writer = new zip.TextWriter();
 
   const opf = await unzipped
