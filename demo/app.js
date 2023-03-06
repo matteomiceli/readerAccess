@@ -36,5 +36,5 @@ sendFileBtn.addEventListener("click", async () => {
 });
 
 parseEpubBtn.addEventListener("click", async () => {
-  console.log(parseEpub(files[0]));
+  console.log(await parseEpub(files[0]));
 });
