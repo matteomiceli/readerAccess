@@ -1,3 +1,4 @@
+import { getEpubMetaData } from "../services/epub";
 import { writeFileToDir } from "../utils/fileHelpers";
 import { DeviceType, Books } from "./types";
 
@@ -26,7 +27,8 @@ export class Reader {
     }
 
     try {
-      await writeFileToDir(this.dirHandle, file);
+      const authorDir = await this.resolveAuthorDir(file);
+      await writeFileToDir(authorDir, file);
     } catch (error) {
       console.error("There was a problem copying a file to your device");
     }
@@ -55,5 +57,27 @@ export class Reader {
       return DeviceType.kindle;
     }
     return DeviceType.generic;
+  }
+
+  /**
+   * Function that uses the file-as rule to find or create an author folder. If there is no file-as rule,
+   * fall back on author `lastname, firstname`. If author doesn't exist, just return the reader dir handle.
+   */
+  private async resolveAuthorDir(file: File) {
+    const { author, authorFileAs } = await getEpubMetaData(file);
+
+    if (authorFileAs) {
+      return await this.dirHandle.getDirectoryHandle(authorFileAs, {
+        create: true,
+      });
+    }
+    if (author) {
+      const [first, last] = author.split(" ");
+      return await this.dirHandle.getDirectoryHandle(`${last}, ${first}`, {
+        create: true,
+      });
+    }
+
+    return this.dirHandle;
   }
 }

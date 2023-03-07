@@ -9,7 +9,3 @@ export async function writeFileToDir(
   await fs.write({ type: "write", data: await file.arrayBuffer() });
   await fs.close();
 }
-
-export async function makeDir(name: string, parent: FileSystemDirectoryHandle) {
-  //
-}
