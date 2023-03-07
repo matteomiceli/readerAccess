@@ -3,7 +3,7 @@
  * run 'build' script before attempting to run demo
  */
 
-import { readerAccess, getEpubMetaData } from "../dist/src/index.js";
+import { readerAccess, getEpubMetaData } from "../dist/index.js";
 
 const selectReaderBtn = document.getElementById("select-reader");
 const selectFileBtn = document.getElementById("select-file");
