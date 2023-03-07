@@ -1,4 +1,4 @@
-import { Reader } from "./controllers/deviceController";
+import { Reader } from "./controllers/reader";
 
 export const readerAccess = async () => {
   try {

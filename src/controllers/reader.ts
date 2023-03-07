@@ -1,9 +1,6 @@
+import { writeFileToDir } from "../utils/fileHelpers";
 import { DeviceType, Books } from "./types";
 
-/**
- * TODO - set a specific ereader service based on the type of device connected with
- * device-specific behaviour
- */
 export class Reader {
   name: string;
 
@@ -27,13 +24,9 @@ export class Reader {
       console.warn("No file selected");
       return;
     }
+
     try {
-      const newFile = await this.dirHandle.getFileHandle(file.name, {
-        create: true,
-      });
-      const fs = await newFile.createWritable();
-      await fs.write({ type: "write", data: await file.arrayBuffer() });
-      await fs.close();
+      await writeFileToDir(this.dirHandle, file);
     } catch (error) {
       console.error("There was a problem copying a file to your device");
     }
