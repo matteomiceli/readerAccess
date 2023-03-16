@@ -36,6 +36,7 @@ export async function getEpubMetaData(file: File): Promise<EpubMetaData> {
     title: getContentByTag(xmlData, "dc:title"),
     author: getContentByTag(xmlData, "dc:creator"),
     authorFileAs: getAttributeValueByName(xmlData, "dc:creator", "opf:file-as"),
+    description: getContentByTag(xmlData, "dc:description"),
     isbn: getElementByAttributeValue(xmlData, "dc:identifier", "ISBN")
       ?.innerHTML,
     cover: getEpubCoverPath(xmlData),
