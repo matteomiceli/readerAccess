@@ -1,19 +1,51 @@
 # Reader Access
 
-Reader access is a JavaScript library that exposes an e-reader-specific filesystem layer to the browser.
+Reader access is a JavaScript library that exposes an e-reader-specific filesystem layer to the client-side.
 
-## Basic Usage
+## Quick Start
 
-Import the `DeviceHandler` class from `index.js` and initialize a new reader. Use the `access()` method to prompt the user to choose their device from the directory picker.
+The `readerAccess` function returns a new instance of the `Reader` class, prompting the user to select their e-reader from a directory picker. Since it uses the [File System Access API](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API) under the hood, `readerAccess` can only be invoked from within a user-action, like a click event.
+
+```js
+import { readerAccess } from "<path_to_library>/index.js";
+
+let reader;
+
+const buttonElement = document.getElementByID("access-reader-button");
+
+buttonElement.addEventListener("click", async () => {
+  reader = await readerAccess();
+});
+```
+
+### Reader
+
+Write file to the selected reader. Currently there is no validation on what kind of file you can pass in, but this function expects an epub.
 
 ```ts
-import { DeviceHandler } from "[path_to_library]/index.js";
+await reader.addBook(file: File);
+```
 
-const reader = new DeviceHandler();
+Get a list of files and directories on the reader.
 
-const htmlButton = document.getElementByID("get-device-button");
+```ts
+await reader.getBooks();
+```
 
-htmlButton.addEventListener("click", async () => {
-  await reader.access();
-});
+### Epub
+
+Get an epub's metadata.
+
+```ts
+await getEpubMetaData(file: File);
+
+// returns EpubMetaData object.
+interface EpubMetaData {
+  title?: string;
+  author?: string;
+  authorFileAs?: string;
+  description?: string;
+  isbn?: string;
+  cover?: string;
+}
 ```
