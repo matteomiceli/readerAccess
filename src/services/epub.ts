@@ -70,10 +70,9 @@ async function getCoverImage(unpacked: zip.Entry[], path: string | undefined) {
 }
 
 export function getRelativeOpfDir(opfPath: string) {
-  const pathPieces = opfPath.split("/");
-  console.log(pathPieces);
+  const pathPieces = opfPath.split("/").filter((p) => !p.includes(".opf"));
 
   if (!pathPieces.length) return;
-  opfPath;
-  return "";
+
+  return pathPieces.join("/").concat("/");
 }
