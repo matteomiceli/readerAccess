@@ -7,6 +7,8 @@ interface EpubMetaData {
   description?: string;
   isbn?: string;
   cover?: { path?: string; url?: string };
+  /** Root directory where  */
+  opfRealtiveDir?: string;
   /** Preferred name filing order (eg. last, first) */
   authorFileAs?: string;
 }
@@ -15,14 +17,11 @@ interface EpubMetaData {
 export async function getEpubMetaData(file: File): Promise<EpubMetaData> {
   const unzipped = await unpackEpub(file);
 
-  const opf = await unzipped
-    .find((file) => {
-      return file.filename.includes("opf");
-    })
-    ?.getData(new zip.TextWriter());
+  const opfFile = unzipped.find((file) => file.filename.includes("opf"));
+  const opf = await opfFile?.getData(new zip.TextWriter());
 
-  if (!opf) {
-    throw new Error("Epub does not contain opf metadata");
+  if (!opf || !opfFile) {
+    throw new Error("Invalid epub file");
   }
 
   const parser = new DOMParser();
@@ -42,6 +41,7 @@ export async function getEpubMetaData(file: File): Promise<EpubMetaData> {
     isbn: xml.getElementByAttributeValue(xmlData, "dc:identifier", "ISBN")
       ?.innerHTML,
     cover: { path: coverPath, url: await getCoverImage(unzipped, coverPath) },
+    opfRealtiveDir: getRelativeOpfDir(opfFile.filename),
   };
 }
 
@@ -57,7 +57,7 @@ async function unpackEpub(file: File) {
   return unzipped;
 }
 
-async function getCoverImage(unpacked: zip.Entry[], path?: string) {
+async function getCoverImage(unpacked: zip.Entry[], path: string | undefined) {
   if (!path) return;
 
   const coverFile = unpacked.find((entry) => entry.filename === path);
@@ -67,4 +67,13 @@ async function getCoverImage(unpacked: zip.Entry[], path?: string) {
   }
 
   return URL.createObjectURL(await coverFile?.getData(new zip.BlobWriter()));
+}
+
+export function getRelativeOpfDir(opfPath: string) {
+  const pathPieces = opfPath.split("/");
+  console.log(pathPieces);
+
+  if (!pathPieces.length) return;
+  opfPath;
+  return "";
 }
