@@ -9,6 +9,7 @@ const selectReaderBtn = document.getElementById("select-reader");
 const selectFileBtn = document.getElementById("select-file");
 const sendFileBtn = document.getElementById("send-file");
 const parseEpubBtn = document.getElementById("parse-epub");
+const coverImg = document.getElementById("cover-img");
 
 let reader;
 let files = [];
@@ -37,7 +38,9 @@ sendFileBtn.addEventListener("click", async () => {
 
 parseEpubBtn.addEventListener("click", async () => {
   try {
-    console.log(await getEpubMetaData(files[0]));
+    const { cover } = await getEpubMetaData(files[0]);
+    coverImg.src = cover.url || "";
+    console.log(cover);
   } catch (error) {
     console.log(error);
   }

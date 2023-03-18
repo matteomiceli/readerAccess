@@ -20,7 +20,7 @@ buttonElement.addEventListener("click", async () => {
 
 ### Reader
 
-Write file to the selected reader. Currently there is no validation on what kind of file you can pass in, but this function expects an epub.
+Write file to the selected reader.
 
 ```ts
 await reader.addBook(file: File);
@@ -46,6 +46,6 @@ interface EpubMetaData {
   authorFileAs?: string;
   description?: string;
   isbn?: string;
-  cover?: string;
+  cover?: { path?: string; url?: string };
 }
 ```

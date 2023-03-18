@@ -1,5 +1,5 @@
 export function getContentByTag(xml: Document, tagName: string) {
-  return xml.getElementsByTagName(tagName)?.[0].innerHTML;
+  return xml.getElementsByTagName(tagName)?.[0]?.innerHTML;
 }
 
 export function getAttributeValueByName(
