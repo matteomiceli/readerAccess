@@ -47,5 +47,6 @@ interface EpubMetaData {
   description?: string;
   isbn?: string;
   cover?: { path?: string; url?: string };
+  opfRealtiveDir?: string;
 }
 ```
