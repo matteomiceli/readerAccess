@@ -5,7 +5,6 @@ export const readerAccess = async () => {
     const dirHandle = await window.showDirectoryPicker();
     return new Reader(dirHandle);
   } catch (e) {
-    console.warn("ReaderAccess: User aborted device selection \n\n", e);
-    return null;
+    throw new Error("ReaderAccess: User aborted device selection \n\n" + e);
   }
 };
