@@ -13,8 +13,7 @@ export function getAttributeValueByName(
 }
 
 export function getEpubCoverPath(xml: Document) {
-  const coverTag = xml.getElementsByName("cover")?.[0];
-
+  const coverTag = getElementByName(xml, "meta", "cover");
   if (!coverTag) {
     return;
   }
@@ -28,6 +27,15 @@ export function getEpubCoverPath(xml: Document) {
   return Object.values(
     xml.getElementById(coverId || "")?.attributes || []
   ).find((attr) => attr.name === "href")?.value;
+}
+
+/** My own version of this method since it apparently doesn't exist on FF */
+export function getElementByName(xml: Document, tag: string, val: string) {
+  return Object.values(xml.getElementsByTagName(tag)).find((t) =>
+    Object.values(t.attributes).find(
+      (a) => a.name === "name" && a.value === val
+    )
+  );
 }
 
 export function getElementByAttributeValue(

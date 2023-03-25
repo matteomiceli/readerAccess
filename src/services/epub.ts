@@ -63,7 +63,7 @@ async function unpackEpub(file: File) {
   return unzipped;
 }
 
-/** Retrieves cover image from unpacked epub. */
+/** Retrieves cover image from unpacked epub and returns image URL. */
 async function getCoverImage(
   unpacked: zip.Entry[],
   path: string | undefined,
