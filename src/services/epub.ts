@@ -18,14 +18,15 @@ export async function getEpubMetaData(file: File): Promise<EpubMetaData> {
   const unzipped = await unpackEpub(file);
 
   const opfFile = unzipped.find((file) => file.filename.includes("opf"));
-  const opf = await opfFile?.getData(new zip.TextWriter());
 
-  if (!opf || !opfFile) {
+  if (!opfFile) {
     throw new Error("Invalid epub file");
   }
 
+  const opfBlob = await opfFile.getData(new zip.TextWriter());
+
   const parser = new DOMParser();
-  const xmlData = parser.parseFromString(opf, "text/xml");
+  const xmlData = parser.parseFromString(opfBlob, "text/xml");
 
   const opfRealtiveDir = getRelativeOpfDir(opfFile.filename);
   const coverPath = xml.getEpubCoverPath(xmlData);
@@ -49,6 +50,7 @@ export async function getEpubMetaData(file: File): Promise<EpubMetaData> {
   };
 }
 
+/** Unzips epub into its individual components. */
 async function unpackEpub(file: File) {
   if (file.type !== "application/epub+zip") {
     throw new Error("File is not a valid epub");
@@ -61,6 +63,7 @@ async function unpackEpub(file: File) {
   return unzipped;
 }
 
+/** Retrieves cover image from unpacked epub. */
 async function getCoverImage(
   unpacked: zip.Entry[],
   path: string | undefined,
@@ -69,7 +72,7 @@ async function getCoverImage(
   if (!path) return;
 
   const relPath = resolveRelativePath(relativeDir, path);
-  const coverFile = unpacked.find((entry) => entry.filename === relPath);
+  const coverFile = unpacked.find((file) => file.filename === relPath);
 
   if (!coverFile) {
     return undefined;
@@ -78,6 +81,7 @@ async function getCoverImage(
   return URL.createObjectURL(await coverFile?.getData(new zip.BlobWriter()));
 }
 
+/** Returns the relative path to the .opf file. */
 export function getRelativeOpfDir(opfPath: string) {
   const pathPieces = opfPath.split("/").filter((p) => !p.includes(".opf"));
 
