@@ -12,21 +12,37 @@ export function getAttributeValueByName(
   )?.value;
 }
 
-export function getEpubCoverPath(xml: Document) {
+export function getCoverImagePath(xml: Document) {
   const coverTag = getElementByName(xml, "meta", "cover");
   if (!coverTag) {
     return;
   }
 
-  // Manifest ID
+  // Manifest Id
   const coverId = Object.values(coverTag.attributes).find(
     (attr) => attr.name === "content"
   )?.value;
 
   // Get cover path from manifest
-  return Object.values(
-    xml.getElementById(coverId || "")?.attributes || []
-  ).find((attr) => attr.name === "href")?.value;
+  return getManifestItemPathById(xml, coverId || "");
+}
+
+function getManifestItemPathById(xml: Document, id: string) {
+  return Object.values(xml.getElementById(id)?.attributes || []).find(
+    (attr) => attr.name === "href"
+  )?.value;
+}
+
+/** Returns the path to the first entry in spine if exists. */
+export function getFirstSpineEntryPath(xml: Document) {
+  const firstInSpine = xml.getElementsByTagName("itemref")[0];
+
+  // manifest Id
+  const firstId = Object.values(firstInSpine.attributes).find(
+    (a) => a.name === "idref"
+  )?.value;
+
+  return getManifestItemPathById(xml, firstId || "");
 }
 
 /** My own version of this method since it apparently doesn't exist on FF */

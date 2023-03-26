@@ -1,4 +1,8 @@
-import { getRelativeOpfDir, resolveRelativePath } from "../../dist/index";
+import {
+  getRelativeOpfDir,
+  pathExistsInsideOtherPath,
+  resolveRelativePath,
+} from "../services/epub";
 
 describe("getRelativeOpfDir", () => {
   test("returns undefined when opf is not nested", () => {
@@ -11,19 +15,32 @@ describe("getRelativeOpfDir", () => {
   });
 });
 
-describe("resolveRelativeDir", () => {
-  test("returns undefined if path is undefined", () => {
-    expect(resolveRelativePath("test/", undefined)).toBeUndefined();
-  });
-
+describe("resolveRelativePath", () => {
   test("returns just path if the relative dir is undefined", () => {
     const path = "content.opf";
-    expect(resolveRelativePath(undefined, path)).toBe(path);
+    expect(resolveRelativePath(path, undefined)).toBe(path);
   });
 
   test("concatinates relative path and path", () => {
     const relPath = "OEBPS/";
     const path = "content.opf";
-    expect(resolveRelativePath(relPath, path)).toBe(relPath + path);
+    expect(resolveRelativePath(path, relPath)).toBe(relPath + path);
+  });
+});
+
+describe("pathExistsInsideOtherPath", () => {
+  test("returns true if inside path exists within outside", () => {
+    expect(
+      pathExistsInsideOtherPath("OEBPS/images/cover.jpeg", "images/cover.jpeg")
+    ).toBeTruthy();
+  });
+
+  test("returns false if the inside path is longer than the outside", () => {
+    expect(
+      pathExistsInsideOtherPath(
+        "OEBPS/images/cover.jpeg",
+        "../../../images/cover.jpeg"
+      )
+    ).toBeFalsy();
   });
 });
