@@ -123,17 +123,9 @@ async function getCoverPagePath(
 
   if (!coverImgSrc) return;
 
-  pathExistsInsideOtherPath(coverImagePath, coverImgSrc);
-
-  // console.log(
-  //   "image path rel to opf: " + coverImagePath + "\n",
-  //   "from img src: " + coverImgSrc + "\n",
-  //   "cover page path: " +
-  //     resolveRelativePath(maybeCoverPage, relativeDir) +
-  //     "\n"
-  // );
-
-  return relPathToCoverPage;
+  return pathExistsInsideOtherPath(coverImagePath, coverImgSrc)
+    ? relPathToCoverPage
+    : undefined;
 }
 
 async function getFileBlob(unpacked: zip.Entry[], path: string) {

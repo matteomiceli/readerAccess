@@ -23,6 +23,7 @@ export function pathExistsInsideOtherPath(outside: string, inside: string) {
   console.log(outsidePieces, insidePieces);
   if (insidePieces.length > outsidePieces.length) return false;
 
+  // remove .. and compare
   const normalizedInside = insidePieces.filter((p) => p !== "..").join("/");
 
   return outside.includes(normalizedInside);
