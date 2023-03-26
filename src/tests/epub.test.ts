@@ -1,8 +1,8 @@
 import {
   getRelativeOpfDir,
-  pathExistsInsideOtherPath,
   resolveRelativePath,
-} from "../services/epub";
+  pathExistsInsideOtherPath,
+} from "../utils/path";
 
 describe("getRelativeOpfDir", () => {
   test("returns undefined when opf is not nested", () => {
