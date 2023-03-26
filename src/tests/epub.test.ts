@@ -29,18 +29,29 @@ describe("resolveRelativePath", () => {
 });
 
 describe("pathExistsInsideOtherPath", () => {
-  test("returns true if inside path exists within outside", () => {
-    expect(
-      pathExistsInsideOtherPath("OEBPS/images/cover.jpeg", "images/cover.jpeg")
-    ).toBeTruthy();
-  });
+  test.each([
+    { outside: "OEBPS/images/cover.jpeg", inside: "images/cover.jpeg" },
+    { outside: "OEBPS/images/cover.jpeg", inside: "../images/cover.jpeg" },
+    { outside: "OEBPS/images/cover.jpeg", inside: "cover.jpeg" },
+  ])(
+    "returns true if inside path exists within outside",
+    ({ outside, inside }) => {
+      expect(pathExistsInsideOtherPath(outside, inside)).toBeTruthy();
+    }
+  );
 
-  test("returns false if the inside path is longer than the outside", () => {
-    expect(
-      pathExistsInsideOtherPath(
-        "OEBPS/images/cover.jpeg",
-        "../../../images/cover.jpeg"
-      )
-    ).toBeFalsy();
-  });
+  test.each([
+    {
+      outside: "OEBPS/images/cover.jpeg",
+      inside: "../../../images/cover.jpeg",
+    },
+    { outside: "OEBPS/images/cover.jpeg", inside: "../../images/cover.jpeg" },
+    { outside: "OEBPS/images/cover.jpeg", inside: "../../photos/cover.jpeg" },
+    { outside: "OEBPS/images/cover.jpeg", inside: "/cover.png" },
+  ])(
+    "returns false if the outside path does not contain the inside path",
+    ({ outside, inside }) => {
+      expect(pathExistsInsideOtherPath(outside, inside)).toBeFalsy();
+    }
+  );
 });

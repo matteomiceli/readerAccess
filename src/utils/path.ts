@@ -20,6 +20,10 @@ export function pathExistsInsideOtherPath(outside: string, inside: string) {
   const outsidePieces = outside.split("/");
   const insidePieces = inside.split("/");
 
+  console.log(outsidePieces, insidePieces);
   if (insidePieces.length > outsidePieces.length) return false;
-  return true;
+
+  const normalizedInside = insidePieces.filter((p) => p !== "..").join("/");
+
+  return outside.includes(normalizedInside);
 }
