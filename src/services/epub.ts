@@ -4,6 +4,7 @@ import {
   getRelativeOpfDir,
   resolveRelativePath,
   pathExistsInsideOtherPath,
+  getCoverImageSourcePath,
 } from "../utils/path";
 
 interface EpubMetaData {
@@ -12,9 +13,9 @@ interface EpubMetaData {
   description?: string;
   isbn?: string;
   /** Book cover. All paths are relative to the .opf directory. */
-  cover?: { path?: string; coverPagePath?: string; url?: string };
+  cover?: { path?: string; pagePath?: string; url?: string };
   /** Path relative to the .opf file */
-  opfRelativeDir?: string;
+  opfRelativePath?: string;
   /** Preferred name filing order (eg. last, first) */
   authorFileAs?: string;
 }
@@ -31,15 +32,14 @@ export async function getEpubMetaData(file: File): Promise<EpubMetaData> {
 
   const opfBlob = await opfFile.getData(new zip.BlobWriter());
 
-  // abstract this all into the epub unpack function
+  /** abstract this all into the epub unpack function - or refactor the entire file into class */
   const parser = new DOMParser();
   const xmlData = parser.parseFromString(await opfBlob.text(), "text/xml");
 
-  const opfRelativeDir = getRelativeOpfDir(opfFile.filename);
-  console.log(opfRelativeDir);
+  const opfRelativePath = getRelativeOpfDir(opfFile.filename);
   const coverPath = xml.getCoverImagePath(xmlData);
   const relCoverPath =
-    coverPath && resolveRelativePath(coverPath, opfRelativeDir);
+    coverPath && resolveRelativePath(coverPath, opfRelativePath);
 
   return {
     title: xml.getContentByTag(xmlData, "dc:title"),
@@ -54,15 +54,15 @@ export async function getEpubMetaData(file: File): Promise<EpubMetaData> {
       ?.innerHTML,
     cover: {
       path: relCoverPath,
-      coverPagePath: await getCoverPagePath(
+      pagePath: await getCoverPagePath(
         unzipped,
         xmlData,
         relCoverPath,
-        opfRelativeDir
+        opfRelativePath
       ),
       url: await getCoverImage(unzipped, relCoverPath),
     },
-    opfRelativeDir,
+    opfRelativePath,
   };
 }
 
@@ -101,7 +101,7 @@ async function getCoverPagePath(
   unpacked: zip.Entry[],
   xmlData: Document,
   coverImagePath?: string,
-  relativeDir?: string
+  relativePath?: string
 ) {
   // Early return since we can't confirm this is the cover page without the cover image path
   if (!coverImagePath) return;
@@ -109,7 +109,7 @@ async function getCoverPagePath(
   const maybeCoverPage = xml.getFirstSpineEntryPath(xmlData);
   if (!maybeCoverPage) return;
 
-  const relPathToCoverPage = resolveRelativePath(maybeCoverPage, relativeDir);
+  const relPathToCoverPage = resolveRelativePath(maybeCoverPage, relativePath);
   const coverPageContents = await (
     await getFileBlob(unpacked, relPathToCoverPage)
   )?.text();
@@ -122,10 +122,55 @@ async function getCoverPagePath(
   const coverImgSrc = xml.getAttributeValueByName(pageHtml, "img", "src");
 
   if (!coverImgSrc) return;
+  await formatCoverForKobo(unpacked, relPathToCoverPage, coverImagePath);
 
   return pathExistsInsideOtherPath(coverImagePath, coverImgSrc)
     ? relPathToCoverPage
     : undefined;
+}
+
+/**
+ * Adds styling to make existing covers Kobo-friendly.
+ */
+async function formatCoverForKobo(
+  unpacked: zip.Entry[],
+  coverPagePath: string,
+  coverImagePath: string
+) {
+  const coverPage = unpacked.find((f) => f.filename === coverPagePath);
+  if (!coverPage) throw new Error("Cover page not found");
+
+  const coverPageContent = await (
+    await coverPage.getData(new zip.BlobWriter())
+  ).text();
+
+  /* 
+  This all works, but rather than parse the existing file, we should rewrite the cover page. 
+    - write a buildCoverPage function that uses a string template. 
+    - do some path logic to determine the src for the img tag
+    - also refactor out the rebuild zip functionality
+  */
+
+  const imgSrc = getCoverImageSourcePath(coverPagePath, coverImagePath);
+  const coverHtml = generateCoverHtml("../Images/9781250186485.jpg");
+
+  const writer = new zip.ZipWriter(new zip.BlobWriter("application/zip"));
+  await Promise.all(
+    unpacked.map(async (file) => {
+      if (file.filename !== coverPagePath) {
+        const blob = await file.getData(new zip.BlobWriter());
+        return writer.add(file.filename, new zip.BlobReader(blob));
+      }
+    })
+  );
+
+  console.log(coverHtml);
+  await writer.add(coverPagePath, new zip.TextReader(coverHtml));
+  const url = URL.createObjectURL(await writer.close());
+  const a = document.createElement("a");
+  a.setAttribute("href", url);
+  a.innerHTML = "new zip";
+  document.body.append(a);
 }
 
 async function getFileBlob(unpacked: zip.Entry[], path: string) {
@@ -135,4 +180,24 @@ async function getFileBlob(unpacked: zip.Entry[], path: string) {
     return undefined;
   }
   return await file.getData(new zip.BlobWriter());
+}
+
+function generateCoverHtml(imgSrc: string) {
+  return `<?xml version='1.0' encoding='utf-8'?>
+  <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+      <head>
+          <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+          <title>Cover</title>
+          <style type="text/css" title="override_css">
+              @page {padding: 0pt; margin:0pt}
+              body { text-align: center; padding:0pt; margin: 0pt; }
+              img { width: 100%; max-height: 100% }
+          </style>
+      </head>
+      <body>
+          <div>
+                <img src="${imgSrc}" alt="cover" />
+          </div>
+      </body>
+  </html>`;
 }

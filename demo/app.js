@@ -39,7 +39,6 @@ sendFileBtn.addEventListener("click", async () => {
 parseEpubBtn.addEventListener("click", async () => {
   try {
     const meta = await getEpubMetaData(files[0]);
-    console.log(meta.cover.url);
     coverImg.src = meta?.cover.url || "";
     console.log(meta);
   } catch (error) {

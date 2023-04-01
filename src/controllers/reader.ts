@@ -1,5 +1,5 @@
 import { getEpubMetaData } from "../services/epub";
-import { writeFileToDir } from "../utils/fileHelpers";
+import { writeFileToDir } from "../utils/file";
 import { DeviceType, Books } from "./types";
 
 export class Reader {
