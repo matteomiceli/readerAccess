@@ -13,7 +13,7 @@ interface EpubMetaData {
   description?: string;
   isbn?: string;
   /** Book cover. All paths are relative to the .opf directory. */
-  cover?: { path?: string; pagePath?: string; url?: string };
+  cover?: { imgPath?: string; pagePath?: string; url?: string };
   /** Path relative to the .opf file */
   opfRelativePath?: string;
   /** Preferred name filing order (eg. last, first) */
@@ -53,7 +53,7 @@ export async function getEpubMetaData(file: File): Promise<EpubMetaData> {
     isbn: xml.getElementByAttributeValue(xmlData, "dc:identifier", "ISBN")
       ?.innerHTML,
     cover: {
-      path: relCoverPath,
+      imgPath: relCoverPath,
       pagePath: await getCoverPagePath(
         unzipped,
         xmlData,
@@ -119,7 +119,14 @@ async function getCoverPagePath(
     "text/html"
   );
 
-  const coverImgSrc = xml.getAttributeValueByName(pageHtml, "img", "src");
+  /**
+   * TODO - Checking if the first entry contains an image. There should be a better
+   * way to confirm the existance of a cover page as other pages might contain
+   * images that are not the cover itself (eg. titlepages, maps, etc.)
+   */
+  const coverImgSrc =
+    xml.getAttributeValueByName(pageHtml, "img", "src") ||
+    xml.getAttributeValueByName(pageHtml, "image", "xlink:href");
 
   if (!coverImgSrc) return;
   await formatCoverForKobo(unpacked, relPathToCoverPage, coverImagePath);
@@ -130,7 +137,8 @@ async function getCoverPagePath(
 }
 
 /**
- * Adds styling to make existing covers Kobo-friendly.
+ * Adds styling to make existing covers Kobo-friendly. Creates epub with new cover
+ * and returns object url.
  */
 async function formatCoverForKobo(
   unpacked: zip.Entry[],
@@ -140,10 +148,6 @@ async function formatCoverForKobo(
   const coverPage = unpacked.find((f) => f.filename === coverPagePath);
   if (!coverPage) throw new Error("Cover page not found");
 
-  const coverPageContent = await (
-    await coverPage.getData(new zip.BlobWriter())
-  ).text();
-
   /* 
   This all works, but rather than parse the existing file, we should rewrite the cover page. 
     - write a buildCoverPage function that uses a string template. 
@@ -152,7 +156,7 @@ async function formatCoverForKobo(
   */
 
   const imgSrc = getCoverImageSourcePath(coverPagePath, coverImagePath);
-  const coverHtml = generateCoverHtml("../Images/9781250186485.jpg");
+  const coverHtml = generateCoverHtml(imgSrc);
 
   const writer = new zip.ZipWriter(new zip.BlobWriter("application/zip"));
   await Promise.all(
@@ -163,14 +167,15 @@ async function formatCoverForKobo(
       }
     })
   );
-
-  console.log(coverHtml);
   await writer.add(coverPagePath, new zip.TextReader(coverHtml));
   const url = URL.createObjectURL(await writer.close());
+
   const a = document.createElement("a");
   a.setAttribute("href", url);
   a.innerHTML = "new zip";
   document.body.append(a);
+
+  return url;
 }
 
 async function getFileBlob(unpacked: zip.Entry[], path: string) {

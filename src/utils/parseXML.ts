@@ -7,9 +7,9 @@ export function getAttributeValueByName(
   tagName: string,
   attributeName: string
 ) {
-  return Object.values(xml.getElementsByTagName(tagName)?.[0].attributes).find(
-    (attr) => attr.name === attributeName
-  )?.value;
+  return Object.values(
+    xml.getElementsByTagName(tagName)?.[0]?.attributes || {}
+  )?.find((attr) => attr.name === attributeName)?.value;
 }
 
 export function getCoverImagePath(xml: Document) {
@@ -59,7 +59,7 @@ export function getElementByAttributeValue(
   tag: string,
   val: string
 ) {
-  return Object.values(xml.getElementsByTagName(tag)).find((t) =>
+  return Object.values(xml.getElementsByTagName(tag) || {}).find((t) =>
     Object.values(t.attributes).find((a) => a.value === val)
   );
 }
