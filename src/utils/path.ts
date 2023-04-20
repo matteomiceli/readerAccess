@@ -11,7 +11,7 @@ export function getRelativeOpfDir(opfPath: string) {
 }
 
 /**
- * Takes in an opf-parsed path and opf relative path, returning the absolute path.
+ * Returns absolute epub path from path relative to the OPF file.
  *
  * @example
  * resolveRelativePath('images/bookCover.jpeg', 'OEBPS/epub/')
