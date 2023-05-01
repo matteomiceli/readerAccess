@@ -1,4 +1,4 @@
-import { getEpubMetaData } from "../services/epub";
+import { getEpubMetaData } from "../services/epub2";
 import { writeFileToDir } from "../utils/file";
 import { DeviceType, Books } from "./types";
 

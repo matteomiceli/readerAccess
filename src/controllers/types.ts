@@ -1,3 +1,5 @@
+import * as zip from "@zip.js/zip.js";
+
 export enum DeviceType {
   "kobo" = "Kobo",
   "kindle" = "Kindle",
@@ -13,3 +15,8 @@ export interface Device {
 export type Books = {
   [key: string]: FileSystemDirectoryHandle | FileSystemFileHandle;
 };
+
+export interface Opf {
+  file: zip.Entry;
+  data: Document;
+}

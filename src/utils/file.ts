@@ -1,3 +1,5 @@
+import * as zip from "@zip.js/zip.js";
+
 export async function writeFileToDir(
   dir: FileSystemDirectoryHandle,
   file: File
@@ -8,4 +10,13 @@ export async function writeFileToDir(
   const fs = await newFile.createWritable();
   await fs.write({ type: "write", data: await file.arrayBuffer() });
   await fs.close();
+}
+
+export async function getZipFileBlob(unpacked: zip.Entry[], path: string) {
+  const file = unpacked.find((file) => file.filename === path);
+
+  if (!file) {
+    return undefined;
+  }
+  return await file.getData(new zip.BlobWriter());
 }

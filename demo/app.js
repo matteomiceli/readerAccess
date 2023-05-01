@@ -3,7 +3,7 @@
  * run 'build' script before attempting to run demo
  */
 
-import { readerAccess, getEpubMetaData } from "../dist/index.js";
+import { readerAccess, probeEpub } from "../dist/index.js";
 
 const selectReaderBtn = document.getElementById("select-reader");
 const selectFileBtn = document.getElementById("select-file");
@@ -38,9 +38,10 @@ sendFileBtn.addEventListener("click", async () => {
 
 parseEpubBtn.addEventListener("click", async () => {
   try {
-    const meta = await getEpubMetaData(files[0]);
-    coverImg.src = meta?.cover.url || "";
-    console.log(meta);
+    const epub = await probeEpub(files[0]);
+    await epub.buildMeta();
+    coverImg.src = epub.meta?.cover.url || "";
+    console.log(epub);
   } catch (error) {
     console.log(error);
   }
