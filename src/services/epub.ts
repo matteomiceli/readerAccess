@@ -138,7 +138,7 @@ async function getCoverPagePath(
 
 /**
  * Adds styling to make existing covers Kobo-friendly. Creates epub with new cover
- * and returns object url.
+ * and returns object url and raw blob.
  */
 async function formatCoverForKobo(
   unpacked: zip.Entry[],
@@ -168,14 +168,15 @@ async function formatCoverForKobo(
     })
   );
   await writer.add(coverPagePath, new zip.TextReader(coverHtml));
-  const url = URL.createObjectURL(await writer.close());
+  const formattedEpub = await writer.close();
+  const url = URL.createObjectURL(formattedEpub);
 
   const a = document.createElement("a");
   a.setAttribute("href", url);
   a.innerHTML = "new zip";
   document.body.append(a);
 
-  return url;
+  return { url, blob: formattedEpub };
 }
 
 async function getFileBlob(unpacked: zip.Entry[], path: string) {
