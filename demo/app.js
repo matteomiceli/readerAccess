@@ -37,12 +37,15 @@ sendFileBtn.addEventListener("click", async () => {
 });
 
 parseEpubBtn.addEventListener("click", async () => {
-  try {
-    const epub = await probeEpub(files[0]);
-    await epub.buildMeta();
-    coverImg.src = epub.meta?.cover.url || "";
-    console.log(epub);
-  } catch (error) {
-    console.log(error);
-  }
+  files.forEach(async (file, i) => {
+    try {
+      const epub = await probeEpub(files[i]);
+      await epub.buildMeta();
+      console.log(await epub.formatCoverForKobo());
+      coverImg.src = epub.meta?.cover.url || "";
+      console.log(epub);
+    } catch (error) {
+      console.log(error);
+    }
+  });
 });

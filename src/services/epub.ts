@@ -5,16 +5,27 @@ import * as path from "../utils/path";
 import { Opf } from "../controllers/types";
 import { getZipFileBlob } from "../utils/file";
 export default class Epub {
+  fileName: string;
   unpacked: zip.Entry[];
   parser: DOMParser;
   opf: Opf;
   meta: EpubMetaData = { cover: {} };
 
-  constructor(unpacked: zip.Entry[], opf: Opf, parser: DOMParser) {
+  constructor(
+    bookFileName: string,
+    unpacked: zip.Entry[],
+    opf: Opf,
+    parser: DOMParser
+  ) {
+    this.fileName = bookFileName;
     this.unpacked = unpacked;
     this.opf = opf;
     this.parser = parser;
     this.resolvePaths();
+  }
+
+  async getMeta() {
+    return this.meta;
   }
 
   /* Separate this into simple meta and cover meta? */
@@ -36,16 +47,55 @@ export default class Epub {
       "ISBN"
     )?.innerHTML;
     this.meta.cover = {
+      ...this.meta.cover,
       pagePath: await this.getCoverPagePath(),
       url: await this.getCoverImage(),
     };
+    return this;
   }
 
-  async getMeta() {
-    return this.meta;
+  async formatCoverForKobo() {
+    const coverImagePath = this.meta.cover.imgPath;
+    const coverPagePath = this.meta.cover.pagePath;
+
+    const coverPage = this.unpacked.find((f) => f.filename === coverPagePath);
+    if (!coverPage || !coverPagePath || !coverImagePath)
+      throw new Error("Cover not found");
+
+    /* 
+  This all works, but rather than parse the existing file, we should rewrite the cover page. 
+    - write a buildCoverPage function that uses a string template. 
+    - do some path logic to determine the src for the img tag
+    - also refactor out the rebuild zip functionality
+  */
+
+    const imgSrc = path.getCoverImageSourcePath(coverPagePath, coverImagePath);
+    const coverHtml = this.generateCoverHtml(imgSrc);
+
+    const writer = new zip.ZipWriter(new zip.BlobWriter("application/zip"));
+    await Promise.all(
+      this.unpacked.map(async (file) => {
+        if (file.filename !== coverPagePath) {
+          const blob = await file.getData(new zip.BlobWriter());
+          return writer.add(file.filename, new zip.BlobReader(blob));
+        }
+      })
+    );
+    await writer.add(coverPagePath, new zip.TextReader(coverHtml));
+    const formattedEpub = await writer.close();
+    const url = URL.createObjectURL(formattedEpub);
+
+    // temporary for demo environment purposes
+    const a = document.createElement("a");
+    a.setAttribute("href", url);
+    a.setAttribute("download", `${this.fileName || "book"}.epub`);
+    a.innerHTML = "new zip";
+    document.body.append(a);
+
+    return { url, blob: formattedEpub };
   }
 
-  resolvePaths() {
+  private resolvePaths() {
     this.meta.pathToOpf = path.getRelativeOpfDir(this.opf.file.filename);
 
     const coverImgPath = xml.getCoverImagePath(this.opf.data);
@@ -89,6 +139,7 @@ export default class Epub {
       ? relPathToCoverPage
       : undefined;
   }
+
   private async getCoverImage() {
     const path = this.meta.cover.imgPath;
     if (!path) return;
@@ -97,6 +148,26 @@ export default class Epub {
     if (!coverBlob) return;
 
     return URL.createObjectURL(coverBlob);
+  }
+
+  private generateCoverHtml(imgSrc: string) {
+    return `<?xml version='1.0' encoding='utf-8'?>
+    <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+        <head>
+            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+            <title>Cover</title>
+            <style type="text/css" title="override_css">
+                @page {padding: 0pt; margin:0pt}
+                body { text-align: center; padding:0pt; margin: 0pt; }
+                img { width: 100%; max-height: 100% }
+            </style>
+        </head>
+        <body>
+            <div>
+                  <img src="${imgSrc}" alt="cover" />
+            </div>
+        </body>
+    </html>`;
   }
 }
 
