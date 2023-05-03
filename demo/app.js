@@ -32,7 +32,9 @@ sendFileBtn.addEventListener("click", async () => {
     try {
       await reader.addBook(file);
       console.log(`${file.name} added to ${reader.name}`);
-    } catch (error) {}
+    } catch (error) {
+      console.error(error);
+    }
   });
 });
 
@@ -41,11 +43,11 @@ parseEpubBtn.addEventListener("click", async () => {
     try {
       const epub = await probeEpub(files[i]);
       await epub.buildCoverMeta();
+      console.log(epub);
       console.log(await epub.formatCoverForKobo());
       coverImg.src = epub.meta?.cover.url || "";
-      console.log(epub);
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   });
 });

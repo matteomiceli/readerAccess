@@ -1,5 +1,5 @@
-import { writeFileToDir } from "../utils/file";
-import { DeviceType, Books } from "./types";
+import { listAllFiles, writeFileToDir } from "../utils/file";
+import { DeviceType } from "./types";
 import { probeEpub } from "../readerAccess";
 
 export class Reader {
@@ -34,16 +34,14 @@ export class Reader {
     }
   }
 
-  async getBooks(): Promise<Books | undefined> {
+  async getBooks() {
     if (!this.dirHandle?.values()) {
       return;
     }
 
-    const books: Books = {};
+    const books: { [key: string]: FileSystemFileHandle } = {};
+    await listAllFiles(this.dirHandle, books, ["epub"]);
 
-    for await (const file of this.dirHandle.values()) {
-      books[file.name] = file;
-    }
     return books;
   }
 

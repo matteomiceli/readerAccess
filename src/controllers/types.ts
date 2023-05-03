@@ -12,10 +12,6 @@ export interface Device {
   addDictionary: () => void;
 }
 
-export type Books = {
-  [key: string]: FileSystemDirectoryHandle | FileSystemFileHandle;
-};
-
 export interface Opf {
   file: zip.Entry;
   data: Document;
