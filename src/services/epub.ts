@@ -9,7 +9,7 @@ export default class Epub {
   unpacked: zip.Entry[];
   parser: DOMParser;
   opf: Opf;
-  meta: EpubMetaData = { cover: {} };
+  meta: EpubMetaData = {};
 
   constructor(
     bookFileName: string,
@@ -22,30 +22,35 @@ export default class Epub {
     this.opf = opf;
     this.parser = parser;
     this.resolvePaths();
+    this.buildSimpleMeta();
   }
 
   async getMeta() {
     return this.meta;
   }
 
-  /* Separate this into simple meta and cover meta? */
-  async buildMeta() {
-    this.meta.title = xml.getContentByTag(this.opf.data, "dc:title");
-    this.meta.author = xml.getContentByTag(this.opf.data, "dc:creator");
-    this.meta.authorFileAs = xml.getAttributeValueByName(
-      this.opf.data,
-      "dc:creator",
-      "opf:file-as"
-    );
-    this.meta.description = xml.getContentByTag(
-      this.opf.data,
-      "dc:description"
-    );
-    this.meta.isbn = xml.getElementByAttributeValue(
-      this.opf.data,
-      "dc:identifier",
-      "ISBN"
-    )?.innerHTML;
+  buildSimpleMeta() {
+    this.meta = {
+      ...this.meta,
+      title: xml.getContentByTag(this.opf.data, "dc:title"),
+      author: xml.getContentByTag(this.opf.data, "dc:creator"),
+      authorFileAs: xml.getAttributeValueByName(
+        this.opf.data,
+        "dc:creator",
+        "opf:file-as"
+      ),
+      description: xml.getContentByTag(this.opf.data, "dc:description"),
+      isbn: xml.getElementByAttributeValue(
+        this.opf.data,
+        "dc:identifier",
+        "ISBN"
+      )?.innerHTML,
+    };
+
+    return this;
+  }
+
+  async buildCoverMeta() {
     this.meta.cover = {
       ...this.meta.cover,
       pagePath: await this.getCoverPagePath(),
@@ -55,8 +60,8 @@ export default class Epub {
   }
 
   async formatCoverForKobo() {
-    const coverImagePath = this.meta.cover.imgPath;
-    const coverPagePath = this.meta.cover.pagePath;
+    const coverImagePath = this.meta?.cover?.imgPath;
+    const coverPagePath = this.meta?.cover?.pagePath;
 
     const coverPage = this.unpacked.find((f) => f.filename === coverPagePath);
     if (!coverPage || !coverPagePath || !coverImagePath)
@@ -99,14 +104,17 @@ export default class Epub {
     this.meta.pathToOpf = path.getRelativeOpfDir(this.opf.file.filename);
 
     const coverImgPath = xml.getCoverImagePath(this.opf.data);
-    this.meta.cover.imgPath =
-      coverImgPath &&
-      path.resolveRelativePath(coverImgPath, this.meta.pathToOpf);
+    this.meta.cover = {
+      ...this.meta?.cover,
+      imgPath:
+        coverImgPath &&
+        path.resolveRelativePath(coverImgPath, this.meta.pathToOpf),
+    };
   }
 
   private async getCoverPagePath() {
     // Early return since we can't confirm this is the cover page without the cover image path
-    if (!this.meta.cover.imgPath) return;
+    if (!this.meta?.cover?.imgPath) return;
 
     const maybeCoverPage = xml.getFirstSpineEntryPath(this.opf.data);
     if (!maybeCoverPage) return;
@@ -141,7 +149,7 @@ export default class Epub {
   }
 
   private async getCoverImage() {
-    const path = this.meta.cover.imgPath;
+    const path = this.meta?.cover?.imgPath;
     if (!path) return;
 
     const coverBlob = await getZipFileBlob(this.unpacked, path);
@@ -177,7 +185,7 @@ interface EpubMetaData {
   description?: string;
   isbn?: string;
   /** Book cover. All paths are relative to the .opf directory. */
-  cover: { imgPath?: string; pagePath?: string; url?: string };
+  cover?: { imgPath?: string; pagePath?: string; url?: string };
   /** Path relative to the .opf file */
   pathToOpf?: string;
   /** Preferred name filing order (eg. last, first) */

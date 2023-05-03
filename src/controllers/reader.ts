@@ -1,6 +1,6 @@
-import { getEpubMetaData } from "../services/epub2";
 import { writeFileToDir } from "../utils/file";
 import { DeviceType, Books } from "./types";
+import { probeEpub } from "../readerAccess";
 
 export class Reader {
   name: string;
@@ -64,7 +64,7 @@ export class Reader {
    * fall back on author `lastname, firstname`. If author doesn't exist, just return the reader dir handle.
    */
   private async resolveAuthorDir(file: File) {
-    const { author, authorFileAs } = await getEpubMetaData(file);
+    const { author, authorFileAs } = (await probeEpub(file)).meta;
 
     if (authorFileAs) {
       return await this.dirHandle.getDirectoryHandle(authorFileAs, {

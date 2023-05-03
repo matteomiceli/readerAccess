@@ -12,6 +12,11 @@ export async function writeFileToDir(
   await fs.close();
 }
 
+export async function listAllFiles(
+  root: FileSystemDirectoryHandle,
+  options: { extensions: string[] }
+) {}
+
 export async function getZipFileBlob(unpacked: zip.Entry[], path: string) {
   const file = unpacked.find((file) => file.filename === path);
 

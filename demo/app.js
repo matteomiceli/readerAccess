@@ -40,7 +40,7 @@ parseEpubBtn.addEventListener("click", async () => {
   files.forEach(async (file, i) => {
     try {
       const epub = await probeEpub(files[i]);
-      await epub.buildMeta();
+      await epub.buildCoverMeta();
       console.log(await epub.formatCoverForKobo());
       coverImg.src = epub.meta?.cover.url || "";
       console.log(epub);
