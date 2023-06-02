@@ -25,27 +25,22 @@ export async function listAllFiles(
   acceptedExtensions?: string[]
 ) {
   for await (const file of root.values()) {
-    switch (file.kind) {
-      case "file":
-        if (acceptedExtensions?.length) {
-          // filter against file extensions
-          for (let i = 0; i < acceptedExtensions.length; i++) {
-            const ext = acceptedExtensions[i];
-            if (file.name.includes(`.${ext}`)) {
-              collection[file.name] = file;
-            }
+    if (file.kind === "file") {
+      // filter against file extensions
+      if (acceptedExtensions?.length) {
+        for (let i = 0; i < acceptedExtensions.length; i++) {
+          const ext = acceptedExtensions[i];
+          if (file.name.includes(`.${ext}`)) {
+            collection[file.name] = file;
           }
-        } else {
-          collection[file.name] = file;
         }
-        break;
-
-      case "directory":
-        await listAllFiles(file, collection, acceptedExtensions);
-        break;
-
-      default:
-        break;
+      } else {
+        collection[file.name] = file;
+      }
+    }
+    // when handle is directory, recurse
+    else {
+      await listAllFiles(file, collection, acceptedExtensions);
     }
   }
   return collection;
