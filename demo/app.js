@@ -39,12 +39,12 @@ sendFileBtn.addEventListener("click", async () => {
 });
 
 parseEpubBtn.addEventListener("click", async () => {
-  files.forEach(async (file, i) => {
+  files.forEach(async (file) => {
     try {
-      const epub = await probeEpub(files[i]);
+      const epub = await probeEpub(file);
       await epub.buildCoverMeta();
       console.log(epub);
-      console.log(await epub.formatCoverForKobo());
+      // console.log(await epub.formatCoverForKobo());
       coverImg.src = epub.meta?.cover.url || "";
     } catch (error) {
       console.error(error);

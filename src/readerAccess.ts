@@ -15,5 +15,5 @@ export const probeEpub = async (file: File) => {
   const parser = new DOMParser();
   const { unpacked, opf } = await unpackEpub(file, parser);
 
-  return new Epub(file.name, unpacked, opf, parser);
+  return new Epub(file.name, unpacked, opf);
 };

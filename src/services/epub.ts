@@ -4,23 +4,30 @@ import * as path from "../utils/path";
 
 import { Opf } from "../controllers/types";
 import { getZipFileBlob } from "../utils/file";
+
+interface EpubMetaData {
+  title?: string;
+  author?: string;
+  description?: string;
+  isbn?: string;
+  /** Book cover. All paths are relative to the .opf directory. */
+  cover?: { imgPath?: string; pagePath?: string; url?: string };
+  /** Path relative to the .opf file */
+  pathToOpf?: string;
+  /** Preferred name filing order (eg. last, first) */
+  authorFileAs?: string;
+}
+
 export default class Epub {
   fileName: string;
   unpacked: zip.Entry[];
-  parser: DOMParser;
   opf: Opf;
   meta: EpubMetaData = {};
 
-  constructor(
-    bookFileName: string,
-    unpacked: zip.Entry[],
-    opf: Opf,
-    parser: DOMParser
-  ) {
+  constructor(bookFileName: string, unpacked: zip.Entry[], opf: Opf) {
     this.fileName = bookFileName;
     this.unpacked = unpacked;
     this.opf = opf;
-    this.parser = parser;
     this.resolvePaths();
     this.buildSimpleMeta();
   }
@@ -67,16 +74,10 @@ export default class Epub {
     if (!coverPage || !coverPagePath || !coverImagePath)
       throw new Error("Cover not found");
 
-    /* 
-  This all works, but rather than parse the existing file, we should rewrite the cover page. 
-    - write a buildCoverPage function that uses a string template. 
-    - do some path logic to determine the src for the img tag
-    - also refactor out the rebuild zip functionality
-  */
-
     const imgSrc = path.getCoverImageSourcePath(coverPagePath, coverImagePath);
     const coverHtml = this.generateCoverHtml(imgSrc);
 
+    // TODO - refactor out the rebuild zip functionality
     const writer = new zip.ZipWriter(new zip.BlobWriter("application/zip"));
     await Promise.all(
       this.unpacked.map(async (file) => {
@@ -132,11 +133,6 @@ export default class Epub {
       "text/html"
     );
 
-    /**
-     * TODO - Checking if the first entry contains an image. There should be a better
-     * way to confirm the existance of a cover page as other pages might contain
-     * images that are not the cover itself (eg. titlepages, maps, etc.)
-     */
     const coverImgSrc =
       xml.getAttributeValueByName(pageHtml, "img", "src") ||
       xml.getAttributeValueByName(pageHtml, "image", "xlink:href");
@@ -177,17 +173,4 @@ export default class Epub {
         </body>
     </html>`;
   }
-}
-
-interface EpubMetaData {
-  title?: string;
-  author?: string;
-  description?: string;
-  isbn?: string;
-  /** Book cover. All paths are relative to the .opf directory. */
-  cover?: { imgPath?: string; pagePath?: string; url?: string };
-  /** Path relative to the .opf file */
-  pathToOpf?: string;
-  /** Preferred name filing order (eg. last, first) */
-  authorFileAs?: string;
 }

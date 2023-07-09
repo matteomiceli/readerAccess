@@ -5,7 +5,7 @@ import {
   getCoverImageSourcePath,
 } from "../utils/path";
 
-describe("getRelativeOpfDir", () => {
+  describe("getRelativeOpfDir", () => {
   test("returns undefined when opf is not nested", () => {
     expect(getRelativeOpfDir("content.opf")).toBeUndefined();
   });
