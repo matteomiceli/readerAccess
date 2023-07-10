@@ -1,9 +1,9 @@
 import * as zip from "@zip.js/zip.js";
 
 export enum DeviceType {
-  "kobo" = "Kobo",
-  "kindle" = "Kindle",
-  "generic" = "Generic",
+  "kobo" = "Kobo eReader",
+  "kindle" = "Kindle eReader",
+  "generic" = "Generic eReader",
 }
 
 /* Device will be the general interface through which the Kobo and Kindle controllers manipulate their respective devices */

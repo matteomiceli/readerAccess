@@ -20,8 +20,8 @@ interface EpubMetaData {
 
 export default class Epub {
   fileName: string;
-  unpacked: zip.Entry[];
-  opf: Opf;
+  private unpacked: zip.Entry[];
+  private opf: Opf;
   meta: EpubMetaData = {};
 
   constructor(bookFileName: string, unpacked: zip.Entry[], opf: Opf) {
@@ -88,17 +88,13 @@ export default class Epub {
       })
     );
     await writer.add(coverPagePath, new zip.TextReader(coverHtml));
-    const formattedEpub = await writer.close();
+    const fileBlob = await writer.close();
+    const formattedEpub = new File([fileBlob], this.fileName, {
+      type: "application/epub+zip",
+    });
     const url = URL.createObjectURL(formattedEpub);
 
-    // temporary for demo environment purposes
-    const a = document.createElement("a");
-    a.setAttribute("href", url);
-    a.setAttribute("download", `${this.fileName || "book"}.epub`);
-    a.innerHTML = "new zip";
-    document.body.append(a);
-
-    return { url, blob: formattedEpub };
+    return { url, file: formattedEpub };
   }
 
   private resolvePaths() {
@@ -117,11 +113,11 @@ export default class Epub {
     // Early return since we can't confirm this is the cover page without the cover image path
     if (!this.meta?.cover?.imgPath) return;
 
-    const maybeCoverPage = xml.getFirstSpineEntryPath(this.opf.data);
-    if (!maybeCoverPage) return;
+    const coverPage = xml.getFirstSpineEntryPath(this.opf.data);
+    if (!coverPage) return;
 
     const relPathToCoverPage = path.resolveRelativePath(
-      maybeCoverPage,
+      coverPage,
       this.meta.pathToOpf
     );
     const coverPageContents = await (
@@ -163,13 +159,11 @@ export default class Epub {
             <style type="text/css" title="override_css">
                 @page {padding: 0pt; margin:0pt}
                 body { text-align: center; padding:0pt; margin: 0pt; }
-                img { width: 100%; max-height: 100% }
+                img { max-width: 100%; height: 100% }
             </style>
         </head>
         <body>
-            <div>
-                  <img src="${imgSrc}" alt="cover" />
-            </div>
+              <img src="${imgSrc}" alt="cover" />
         </body>
     </html>`;
   }

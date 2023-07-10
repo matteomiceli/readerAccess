@@ -8,13 +8,15 @@
   body {
     background-color: rgb(23, 26, 44);
     color: white;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
   a {
     color: white;
   }
   button,
   input {
-    margin-bottom: 50px;
+    margin: 20px 0;
   }
   #cover-img {
     max-width: 250px;
@@ -31,20 +33,30 @@
   </head>
 
   <body>
-    <div>
-      <button id="select-reader">Select Your Device</button>
+    <div class="left">
+      <h2>File</h2>
+      <div>
+        <input type="file" id="select-file" multiple />
+      </div>
+      <div>
+        <button id="parse-epub">Parse epub</button>
+      </div>
+      <div>
+        <button id="format-kobo">Format epub cover for Kobo</button>
+      </div>
+      <div>
+        <img id="cover-img" src="" alt="book cover" />
+      </div>
     </div>
-    <div>
-      <input type="file" id="select-file" multiple />
-    </div>
-    <div>
-      <button id="send-file">Send File to Device</button>
-    </div>
-    <div>
-      <button id="parse-epub">Parse epub</button>
-    </div>
-    <div>
-      <img id="cover-img" src="" alt="book cover" />
+    <div class="right">
+      <h2>Device</h2>
+      <h4 id="device-name"></h4>
+      <div>
+        <button id="select-reader">Select Your Device</button>
+      </div>
+      <div>
+        <button id="send-file">Send File to Device</button>
+      </div>
     </div>
   </body>
 </html>
