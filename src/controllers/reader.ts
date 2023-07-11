@@ -1,6 +1,5 @@
 import { listAllFiles, writeFileToDir } from "../utils/file";
 import { DeviceType } from "./types";
-import { probeEpub } from "../readerAccess";
 
 export class Reader {
   name: string;
@@ -15,7 +14,7 @@ export class Reader {
     this.type = this.setDeviceType(this.dirHandle.name);
   }
 
-  async addBook(file: File) {
+  async addBook(file: File, options?: { fileAs: string }) {
     if (!this.dirHandle) {
       console.warn("ReaderAccess: No directory handle selected");
       return;
@@ -26,7 +25,16 @@ export class Reader {
     }
 
     try {
-      const authorDir = await this.resolveAuthorDir(file);
+      let authorDir: FileSystemDirectoryHandle;
+
+      if (options?.fileAs) {
+        authorDir = await this.dirHandle.getDirectoryHandle(options.fileAs, {
+          create: true,
+        });
+      } else {
+        authorDir = this.dirHandle;
+      }
+
       await writeFileToDir(authorDir, file);
     } catch (error) {
       console.error(
@@ -58,29 +66,5 @@ export class Reader {
       return DeviceType.kindle;
     }
     return DeviceType.generic;
-  }
-
-  // TODO - parse this into a util so that Reader is decoupled from the file type entirely (addBook
-  // should be called with the authorDir already declared.
-  /**
-   * Function that uses the file-as rule to find or create an author folder. If there is no file-as rule,
-   * fall back on author `lastname, firstname`. If author doesn't exist, just return the reader root handle.
-   */
-  private async resolveAuthorDir(file: File) {
-    const { author, authorFileAs } = (await probeEpub(file)).meta;
-
-    if (authorFileAs) {
-      return await this.dirHandle.getDirectoryHandle(authorFileAs, {
-        create: true,
-      });
-    }
-    if (author) {
-      const [first, last] = author.split(" ");
-      return await this.dirHandle.getDirectoryHandle(`${last}, ${first}`, {
-        create: true,
-      });
-    }
-
-    return this.dirHandle;
   }
 }

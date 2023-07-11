@@ -34,7 +34,8 @@ selectFileBtn.addEventListener("change", (e) => {
 sendFileBtn.addEventListener("click", async () => {
   files.forEach(async (file) => {
     try {
-      await reader.addBook(file);
+      const currEpub = await probeEpub(file);
+      await reader.addBook(file, { fileAs: currEpub.getMeta().authorFileAs });
       console.log(`${file.name} added to ${reader.name}`);
     } catch (error) {
       console.error(error);
@@ -47,7 +48,7 @@ parseEpubBtn.addEventListener("click", async () => {
     try {
       epub = await probeEpub(file);
       await epub.buildCoverMeta();
-      coverImg.src = epub.meta?.cover.url || "";
+      coverImg.src = epub.getMeta()?.cover.url || "";
     } catch (error) {
       console.error(error);
     }

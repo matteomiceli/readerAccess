@@ -6,6 +6,7 @@ import { Opf } from "../controllers/types";
 import { getZipFileBlob } from "../utils/file";
 
 interface EpubMetaData {
+  fileName?: string;
   title?: string;
   author?: string;
   description?: string;
@@ -19,33 +20,40 @@ interface EpubMetaData {
 }
 
 export default class Epub {
-  fileName: string;
+  private file: File;
   private unpacked: zip.Entry[];
   private opf: Opf;
-  meta: EpubMetaData = {};
+  private meta: EpubMetaData = {};
 
-  constructor(bookFileName: string, unpacked: zip.Entry[], opf: Opf) {
-    this.fileName = bookFileName;
+  constructor(file: File, unpacked: zip.Entry[], opf: Opf) {
+    this.file = file;
     this.unpacked = unpacked;
     this.opf = opf;
     this.resolvePaths();
     this.buildSimpleMeta();
   }
 
-  async getMeta() {
+  getMeta() {
     return this.meta;
+  }
+
+  /** Returns epub file blob. */
+  getFile() {
+    return this.file;
   }
 
   buildSimpleMeta() {
     this.meta = {
       ...this.meta,
+      fileName: this.file.name,
       title: xml.getContentByTag(this.opf.data, "dc:title"),
       author: xml.getContentByTag(this.opf.data, "dc:creator"),
-      authorFileAs: xml.getAttributeValueByName(
-        this.opf.data,
-        "dc:creator",
-        "opf:file-as"
-      ),
+      authorFileAs:
+        xml.getAttributeValueByName(
+          this.opf.data,
+          "dc:creator",
+          "opf:file-as"
+        ) || this.fileAsFromAuthorName(),
       description: xml.getContentByTag(this.opf.data, "dc:description"),
       isbn: xml.getElementByAttributeValue(
         this.opf.data,
@@ -64,6 +72,17 @@ export default class Epub {
       url: await this.getCoverImage(),
     };
     return this;
+  }
+
+  private fileAsFromAuthorName(): string {
+    const author = xml.getContentByTag(this.opf.data, "dc:creator");
+
+    if (author) {
+      const [first, last] = author.split(" ");
+      return `${last}, ${first}`;
+    }
+
+    return "";
   }
 
   async formatCoverForKobo() {
@@ -89,10 +108,12 @@ export default class Epub {
     );
     await writer.add(coverPagePath, new zip.TextReader(coverHtml));
     const fileBlob = await writer.close();
-    const formattedEpub = new File([fileBlob], this.fileName, {
+    const formattedEpub = new File([fileBlob], this.file.name, {
       type: "application/epub+zip",
     });
     const url = URL.createObjectURL(formattedEpub);
+
+    this.file = formattedEpub;
 
     return { url, file: formattedEpub };
   }
